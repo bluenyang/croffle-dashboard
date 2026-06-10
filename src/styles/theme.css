@@ -141,7 +141,7 @@
   /* Header Glassmorphism Theme Tokens */
   --color-header-bg: var(--header-bg);
   --color-header-border: var(--header-border);
-  --background-image-header-glow: var(--header-glow);
+  --color-header-glow: var(--header-glow);
   --color-header-brand-bg: var(--header-brand-bg);
   --color-header-brand-text: var(--header-brand-text);
 

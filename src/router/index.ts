@@ -1,9 +1,10 @@
 // src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router';
-import DashboardView from '@/pages/DashboardView.vue';
+
 import { useAuthStore } from '@/features/auth/auth.store';
-import AuthCallbackView from '@/pages/AuthCallbackView.vue';
-import ErrorView from '@/pages/ErrorView.vue';
+import AuthCallbackView from '@/pages/auth-collback-view.vue';
+import DashboardView from '@/pages/dashboard-view.vue';
+import ErrorView from '@/pages/error-view.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -12,7 +13,7 @@ const router = createRouter({
       path: '/',
       name: 'dashboard',
       component: DashboardView,
-      meta: { requireAuth: true },
+      meta: { requiresAuth: true },
     },
     {
       path: '/callback',
@@ -32,7 +33,7 @@ router.beforeEach(async (to) => {
 
   if (!auth.isAuthReady) await auth.initAuth();
 
-  if (to.meta.requireAuth && !auth.isLoggedIn) {
+  if (to.meta.requiresAuth && !auth.isLoggedIn) {
     auth.login();
     return false;
   }

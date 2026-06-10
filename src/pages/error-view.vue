@@ -1,5 +1,5 @@
 <script setup lang="ts"></script>
 
 <template>
-  <UError> </UError>
+  <a href="/"> back to home </a>
 </template>
