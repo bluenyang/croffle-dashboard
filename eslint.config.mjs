@@ -1,17 +1,22 @@
 import process from 'node:process';
 
+import tsParser from '@typescript-eslint/parser';
 import pluginImport from 'eslint-plugin-import-x';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import pluginPromise from 'eslint-plugin-promise';
 import pluginUnicorn from 'eslint-plugin-unicorn';
+import pluginVue from 'eslint-plugin-vue';
 
 const promisePlugin = /** @type {any} */ (pluginPromise);
 
 /**
  * @type {import('eslint').Linter.Config[]}
  */
-export const vueConfig = [
+const vueConfig = [
   {
+    languageOptions: {
+      parser: tsParser,
+    },
     plugins: {
       import: pluginImport,
       promise: promisePlugin,
@@ -55,8 +60,17 @@ export const vueConfig = [
       'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     },
   },
+  ...pluginVue.configs['flat/recommended'],
   {
     files: ['**/*.vue'],
+    plugins: {
+      vue: pluginVue,
+    },
+    languageOptions: {
+      parserOptions: {
+        parser: tsParser,
+      },
+    },
     rules: {
       'vue/attributes-order': [
         'warn',
@@ -85,3 +99,5 @@ export const vueConfig = [
   },
   eslintPluginPrettierRecommended,
 ];
+
+export default vueConfig;

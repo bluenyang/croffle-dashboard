@@ -1,9 +1,10 @@
 import ui from '@nuxt/ui/vue-plugin';
 import { createApp } from 'vue';
-import App from './App.vue';
+
+import App from '@/app.vue';
 import '@/styles/index.css';
 import router from '@/router';
-import { pinia } from './store/index.ts';
+import { pinia } from '@/store/index.ts';
 
 const app = createApp(App);
 
