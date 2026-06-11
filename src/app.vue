@@ -1,13 +1,27 @@
 <script setup lang="ts">
-  import { RouterView } from 'vue-router';
+  import { computed } from 'vue';
+  import { RouterView, useRoute } from 'vue-router';
 
   import DefaultLayout from '@/layout/default-layout.vue';
+  import NoneLayout from '@/layout/none-layout.vue';
+
+  const route = useRoute();
+
+  const layouts: Record<string, unknown> = {
+    default: DefaultLayout,
+    none: NoneLayout,
+  };
+
+  const currentLayout = computed(() => {
+    const layoutName = (route.meta.layout as string) || 'none';
+    return layouts[layoutName] || layouts.default;
+  });
 </script>
 
 <template>
   <UApp>
-    <DefaultLayout>
+    <component :is="currentLayout">
       <RouterView />
-    </DefaultLayout>
+    </component>
   </UApp>
 </template>

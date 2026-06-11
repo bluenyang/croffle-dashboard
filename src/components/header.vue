@@ -1,9 +1,23 @@
 <script setup lang="ts">
-  import { computed } from 'vue';
+  import { computed, onMounted } from 'vue';
 
   import { useAuthStore } from '@/features/auth/auth.store';
+  import { useProfileStore } from '@/features/profile/profile.store';
 
   const { logout, user } = useAuthStore();
+  const { profile, hasProfile, fetchProfile } = useProfileStore();
+
+  const username = computed(() => {
+    if (hasProfile) return profile?.nickname;
+    if (!user) return '로딩 중...';
+    return `${user?.first_name} ${user?.last_name}`;
+  });
+
+  const avatarSrc = computed(() => {
+    if (hasProfile) return `https://github.com/${profile!.github_username}.png?v=4`;
+    if (!user) return '';
+    return user?.last_name;
+  });
 
   const handleLogout = async () => {
     try {
@@ -13,7 +27,11 @@
     }
   };
 
-  const hasProfile = computed<boolean>(() => !!user);
+  onMounted(async () => {
+    if (!hasProfile) {
+      await fetchProfile();
+    }
+  });
 </script>
 
 <template>
@@ -57,14 +75,9 @@
           class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-1.5 transition-colors"
         >
           <span class="hidden text-sm font-medium sm:inline-block">
-            {{ hasProfile ? `${user!.first_name} ${user!.last_name}` : 'Member' }}
+            {{ username }}
           </span>
-          <UAvatar
-            v-if="hasProfile"
-            class="border-border h-8 w-8 border"
-            :src="user!.last_name"
-            :alt="user!.last_name"
-          />
+          <UAvatar class="border-border h-8 w-8 border" :src="avatarSrc" :alt="username" />
         </UButton>
         <UButton
           class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-2 transition-colors"

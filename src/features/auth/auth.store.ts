@@ -19,7 +19,6 @@ export const useAuthStore = defineStore('auth', () => {
       directus.refresh();
       const me = await directus.request(readMe());
       user.value = me;
-      console.log(me);
     } catch (err) {
       console.error('Auth init failed:', err);
     } finally {

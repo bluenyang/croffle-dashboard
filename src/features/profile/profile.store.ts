@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import type { Profile, SaveProfileRequest } from './profile.type';
 import { directus } from '@/util/directus';
 import { createItem, readItems, updateItem } from '@directus/sdk';
@@ -9,18 +9,24 @@ export const useProfileStore = defineStore('profile', () => {
   const isLoading = ref<boolean>(false);
   const err = ref<string | null>(null);
 
+  const hasProfile = computed(() => profile.value !== null);
+
   async function fetchProfile() {
     isLoading.value = true;
     err.value = null;
+
     try {
+      directus.refresh();
       const resp = await directus.request(
         readItems('homepage_team_members', {
           filter: { user_id: { _eq: '$CURRENT_USER' } },
           limit: 1,
         }),
       );
+
       if (resp.length === 0) {
         err.value = '등록된 프로필이 없습니다.';
+        console.log('프로필 없음');
         return;
       }
       profile.value = (resp[0] as Profile) ?? null;
@@ -58,6 +64,7 @@ export const useProfileStore = defineStore('profile', () => {
 
   return {
     profile,
+    hasProfile,
     isLoading,
     err,
     fetchProfile,
