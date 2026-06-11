@@ -9,13 +9,10 @@
   const { toolList, isLoading, err } = storeToRefs(toolListStore);
   const { fetchToolList } = toolListStore;
 
-  const profileStore = useProfileStore();
-  const { profile } = storeToRefs(profileStore);
-  const { fetchProfile } = profileStore;
+  const { profile } = storeToRefs(useProfileStore());
 
   onMounted(async () => {
     await fetchToolList();
-    await fetchProfile();
   });
 </script>
 

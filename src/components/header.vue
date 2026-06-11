@@ -1,21 +1,24 @@
 <script setup lang="ts">
   import type { DropdownMenuItem } from '@nuxt/ui/runtime/components/DropdownMenu.d.vue.js';
+  import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
 
   import { useAuthStore } from '@/features/auth/auth.store';
   import { useProfileStore } from '@/features/profile/profile.store';
 
   const { logout, user } = useAuthStore();
-  const { profile, hasProfile, fetchProfile } = useProfileStore();
+  const profileStore = useProfileStore();
+  const { profile } = storeToRefs(profileStore);
+  const { fetchProfile } = profileStore;
 
   const username = computed(() => {
-    if (hasProfile) return profile?.nickname;
+    if (profile.value) return profile.value.nickname;
     if (!user) return '로딩 중...';
     return `${user?.first_name} ${user?.last_name}`;
   });
 
   const avatarSrc = computed(() => {
-    if (hasProfile) return `https://github.com/${profile!.github_username}.png?v=4`;
+    if (profile.value) return `https://github.com/${profile.value.github_username}.png?v=4`;
     if (!user) return '';
     return user?.last_name;
   });
@@ -42,9 +45,7 @@
   ];
 
   onMounted(async () => {
-    if (!hasProfile) {
-      await fetchProfile();
-    }
+    await fetchProfile();
   });
 </script>
 

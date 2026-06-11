@@ -2,7 +2,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import { useAuthStore } from '@/features/auth/auth.store';
-import { useProfileStore } from '@/features/profile/profile.store';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -42,7 +41,6 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const { isAuthReady, isLoggedIn, initAuth, login } = useAuthStore();
-  const { hasProfile, fetchProfile } = useProfileStore();
 
   if (to.name === 'callback') return true;
 
@@ -50,9 +48,6 @@ router.beforeEach(async (to) => {
     await initAuth();
   }
 
-  if (!hasProfile) {
-    await fetchProfile();
-  }
   if (to.meta.requiresAuth && !isLoggedIn) {
     login();
     return false;
