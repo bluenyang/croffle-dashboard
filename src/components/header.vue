@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import type { DropdownMenuItem } from '@nuxt/ui/runtime/components/DropdownMenu.d.vue.js';
   import { computed, onMounted } from 'vue';
 
   import { useAuthStore } from '@/features/auth/auth.store';
@@ -19,13 +20,26 @@
     return user?.last_name;
   });
 
-  const handleLogout = async () => {
+  async function handleLogout() {
     try {
       await logout();
     } catch (e) {
       console.error(e);
     }
-  };
+  }
+
+  const profileDropdownItems: DropdownMenuItem[] = [
+    {
+      label: '프로필 수정',
+      icon: 'i-lucide-user',
+      to: '/profile',
+    },
+    {
+      label: '로그아웃',
+      icon: 'i-lucide-log-out',
+      click: handleLogout,
+    },
+  ];
 
   onMounted(async () => {
     if (!hasProfile) {
@@ -61,7 +75,7 @@
     </template>
 
     <template #right>
-      <div class="flex items-center gap-4 lg:mr-8">
+      <div class="flex items-center gap-2 lg:mr-8">
         <ULink
           to="/"
           class="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
@@ -70,23 +84,17 @@
           메인 페이지로
         </ULink>
         <USeparator orientation="vertical" class="border-s-primary/20 h-6 border-s" />
-        <UButton
-          variant="ghost"
-          class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-1.5 transition-colors"
-        >
-          <span class="hidden text-sm font-medium sm:inline-block">
-            {{ username }}
-          </span>
-          <UAvatar class="border-border h-8 w-8 border" :src="avatarSrc" :alt="username" />
-        </UButton>
-        <UButton
-          class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-2 transition-colors"
-          title="로그아웃"
-          variant="ghost"
-          @click="handleLogout"
-        >
-          <UIcon name="i-lucide-log-out" class="h-4 w-4" />
-        </UButton>
+        <UDropdownMenu :items="profileDropdownItems">
+          <UButton
+            variant="ghost"
+            class="hover:bg-accent mr-4 flex items-center gap-3 rounded-lg px-3 py-1.5 transition-colors"
+          >
+            <span class="hidden text-sm font-medium sm:inline-block">
+              {{ username }}
+            </span>
+            <UAvatar class="border-border h-8 w-8 border" :src="avatarSrc" :alt="username" />
+          </UButton>
+        </UDropdownMenu>
         <UColorModeButton />
       </div>
     </template>
