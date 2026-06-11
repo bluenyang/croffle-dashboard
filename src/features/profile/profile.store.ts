@@ -43,7 +43,7 @@ export const useProfileStore = defineStore('profile', () => {
       } else {
         const created = await directus.request(
           createItem('homepage_team_members', {
-            ...DataTransfer,
+            ...payload,
             user_id: '$CURRENT_USER',
           }),
         );

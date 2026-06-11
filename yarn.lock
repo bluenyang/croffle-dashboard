@@ -502,12 +502,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@iconify-vue/ic@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@iconify-vue/ic@npm:1.0.3"
+"@iconify-vue/si@npm:^1.0.12":
+  version: 1.0.12
+  resolution: "@iconify-vue/si@npm:1.0.12"
   dependencies:
     "@iconify/css-vue": "npm:^1.0.0"
-  checksum: 10c0/fbb67662d7ccc1712c8aacd107a45a9e5fe965745b46bea8806b7bd96f5caf31b03a7df582365bbe04e9a33d00e13bbe436bd335de614c12bce27950c77b24bc
+  checksum: 10c0/d5a982b620b5fc67a2b09f06b1ce59be14ce03e32aaace11fdec84b39b1912cadb8156343c641753a145b43b290030c7a68b428499be6fde90eb6521f91ad9e9
   languageName: node
   linkType: hard
 
@@ -2729,7 +2729,7 @@ __metadata:
   resolution: "croffle-dashboard@workspace:."
   dependencies:
     "@directus/sdk": "npm:^21.3.0"
-    "@iconify-vue/ic": "npm:^1.0.3"
+    "@iconify-vue/si": "npm:^1.0.12"
     "@nuxt/ui": "npm:^4.8.1"
     "@tanstack/vue-query": "npm:^5.101.0"
     "@types/node": "npm:^24.12.3"
@@ -2749,7 +2749,6 @@ __metadata:
     husky: "npm:^9.1.7"
     lint-staged: "npm:^17.0.7"
     ofetch: "npm:^1.5.1"
-    oidc-client-ts: "npm:^3.5.0"
     pinia: "npm:^3.0.4"
     pinia-plugin-persistedstate: "npm:^4.7.1"
     prettier: "npm:^3.8.3"
@@ -3863,13 +3862,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jwt-decode@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "jwt-decode@npm:4.0.0"
-  checksum: 10c0/de75bbf89220746c388cf6a7b71e56080437b77d2edb29bae1c2155048b02c6b8c59a3e5e8d6ccdfd54f0b8bda25226e491a4f1b55ac5f8da04cfbadec4e546c
-  languageName: node
-  linkType: hard
-
 "keyv@npm:^4.5.4":
   version: 4.5.4
   resolution: "keyv@npm:4.5.4"
@@ -4391,15 +4383,6 @@ __metadata:
   version: 2.0.11
   resolution: "ohash@npm:2.0.11"
   checksum: 10c0/d07c8d79cc26da082c1a7c8d5b56c399dd4ed3b2bd069fcae6bae78c99a9bcc3ad813b1e1f49ca2f335292846d689c6141a762cf078727d2302a33d414e69c79
-  languageName: node
-  linkType: hard
-
-"oidc-client-ts@npm:^3.5.0":
-  version: 3.5.0
-  resolution: "oidc-client-ts@npm:3.5.0"
-  dependencies:
-    jwt-decode: "npm:^4.0.0"
-  checksum: 10c0/93cbb62adbfeee4bf705199a94e5790217f211b85dd988827e555481d4e605a5263292b740f29765ac01528b99486f57bbd96679ffca53d7ef76d8f7f7c9f979
   languageName: node
   linkType: hard
 
