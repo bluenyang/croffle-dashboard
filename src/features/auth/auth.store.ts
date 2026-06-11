@@ -1,69 +1,58 @@
-import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { directus } from '@/util/directus';
+import { readMe } from '@directus/sdk';
+
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 
-const OIDC_URL = import.meta.env.VITE_OIDC_URL;
-const OIDC_APP_SLUG = import.meta.env.VITE_OIDC_APP_SLUG;
-const OIDC_CLIENT_ID = import.meta.env.VITE_OIDC_CLIENT_ID;
-const HOMEPAGE_URL = import.meta.env.VITE_HOMEPAGE_URL;
-
-const userManager = new UserManager({
-  authority: `${OIDC_URL}/application/o/${OIDC_APP_SLUG}`,
-  client_id: OIDC_CLIENT_ID,
-  redirect_uri: `${window.location.origin}/callback`,
-  response_type: 'code',
-  scope: 'openid profile email',
-  post_logout_redirect_uri: HOMEPAGE_URL,
-  userStore: new WebStorageStateStore({ store: window.localStorage }),
-});
+const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL;
+const DIRECTUS_OIDC_PROVIDER = import.meta.env.VITE_DIRECTUS_OIDC_PROVIDER;
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null);
+  const user = ref<Record<string, any> | null>(null);
   const isAuthReady = ref(false);
 
   // token exists and is not expired
-  const isLoggedIn = computed(() => !!user.value && !user.value.expired);
-  const accessToken = computed(() => user.value?.access_token);
+  const isLoggedIn = computed(() => !!user.value);
 
-  const initAuth = async () => {
+  async function initAuth() {
     try {
-      const currentUser = await userManager.getUser();
-      if (currentUser && !currentUser.expired) {
-        user.value = currentUser;
-      }
+      const me = await directus.request(readMe());
+      user.value = me;
+      console.log(me);
     } catch (err) {
       console.error('Auth init failed:', err);
     } finally {
       isAuthReady.value = true;
     }
-  };
+  }
 
-  // token auto refresh and logout detection subcriptions
-  userManager.events.addUserLoaded((loadedUser) => {
-    user.value = loadedUser; // state update when token automatically refreshed
-  });
-  userManager.events.addUserUnloaded(() => {
-    user.value = null; // state update when token automatically expired or force logout
-  });
+  function login() {
+    const redirectUrl = `${window.location.origin}/callback`;
+    window.location.href = `${DIRECTUS_URL}/auth/login/${DIRECTUS_OIDC_PROVIDER}?redirect=${encodeURIComponent(redirectUrl)}`;
+  }
 
-  const login = () => userManager.signinRedirect();
-  const logout = () => userManager.signoutRedirect();
-
-  const handleCallback = async () => {
-    const loadedUser = await userManager.signinCallback();
-    if (!loadedUser) {
-      throw new Error('Failed to complete sign in');
+  async function handleCallback() {
+    try {
+      const me = await directus.request(readMe());
+      user.value = me;
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (err) {
+      throw new Error('Auth failed');
     }
-    user.value = loadedUser;
-    // cleanup url param, avoid duplicate signin on reload.
-    window.history.replaceState({}, document.title, window.location.pathname);
-  };
+  }
+
+  async function logout() {
+    try {
+      await directus.logout();
+    } finally {
+      user.value = null;
+    }
+  }
 
   return {
     user,
     isLoggedIn,
     isAuthReady,
-    accessToken,
     initAuth,
     login,
     logout,

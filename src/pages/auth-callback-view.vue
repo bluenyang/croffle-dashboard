@@ -11,7 +11,8 @@
     try {
       await auth.handleCallback();
       router.replace('/');
-    } catch {
+    } catch (err) {
+      console.error(err);
       router.replace('/error');
     }
   });

@@ -57,12 +57,13 @@
           class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-1.5 transition-colors"
         >
           <span class="hidden text-sm font-medium sm:inline-block">
-            {{ hasProfile ? user!.profile.name : 'Member' }}
+            {{ hasProfile ? `${user!.first_name} ${user!.last_name}` : 'Member' }}
           </span>
           <UAvatar
+            v-if="hasProfile"
             class="border-border h-8 w-8 border"
-            :src="user!.profile.picture"
-            :alt="user!.profile.name"
+            :src="user!.last_name"
+            :alt="user!.last_name"
           />
         </UButton>
         <UButton
