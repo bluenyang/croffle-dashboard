@@ -502,32 +502,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@iconify-vue/si@npm:^1.0.12":
-  version: 1.0.12
-  resolution: "@iconify-vue/si@npm:1.0.12"
-  dependencies:
-    "@iconify/css-vue": "npm:^1.0.0"
-  checksum: 10c0/d5a982b620b5fc67a2b09f06b1ce59be14ce03e32aaace11fdec84b39b1912cadb8156343c641753a145b43b290030c7a68b428499be6fde90eb6521f91ad9e9
-  languageName: node
-  linkType: hard
-
 "@iconify/collections@npm:^1.0.691":
   version: 1.0.694
   resolution: "@iconify/collections@npm:1.0.694"
   dependencies:
     "@iconify/types": "npm:*"
   checksum: 10c0/8bea0ddf98962366724a84e8704606278f0f4d24db0d92f4e68746b3fdf991048c56bf5dceabd8c0597cb228a6105670bd556a26ec665ac6849d805488aa391f
-  languageName: node
-  linkType: hard
-
-"@iconify/css-vue@npm:^1.0.0":
-  version: 1.0.2
-  resolution: "@iconify/css-vue@npm:1.0.2"
-  dependencies:
-    "@iconify/types": "npm:^2.0.0"
-  peerDependencies:
-    vue: ">=3.0.0"
-  checksum: 10c0/c3ec6fb3e3d0f40a06539ad69a20329beeb685de95d7f898c30be509ce528106b4439a7af9e709a740c2b5bb32559116cc103225ee6d581ae06b453fdb36eeaf
   languageName: node
   linkType: hard
 
@@ -2729,7 +2709,6 @@ __metadata:
   resolution: "croffle-dashboard@workspace:."
   dependencies:
     "@directus/sdk": "npm:^21.3.0"
-    "@iconify-vue/si": "npm:^1.0.12"
     "@nuxt/ui": "npm:^4.8.1"
     "@tanstack/vue-query": "npm:^5.101.0"
     "@types/node": "npm:^24.12.3"

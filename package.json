@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@directus/sdk": "^21.3.0",
-    "@iconify-vue/si": "^1.0.12",
     "@nuxt/ui": "^4.8.1",
     "@tanstack/vue-query": "^5.101.0",
     "@vueuse/core": "^14.3.0",
