@@ -55,7 +55,7 @@
           >
             <img src="../assets/logo-only-x32.svg" alt="" role="presentation" />
           </div>
-          <span class="text-header-brand-text text-xl font-bold">Croffle Dev.</span>
+          <span class="text-header-brand-text text-xl font-bold">Croffle Portal</span>
         </div>
       </div>
     </template>
@@ -66,10 +66,10 @@
           to="/"
           class="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
         >
-          <UIcon name="i-lucide-home" class="h-4 w-4" />
+          <UIcon name="i-mdi:home" class="h-4 w-4" />
           메인 페이지로
         </ULink>
-        <div class="bg-border mx-2 h-5 w-px" />
+        <USeparator orientation="vertical" class="border-s-primary/20 h-6 border-s" />
         <UButton
           variant="ghost"
           class="hover:bg-accent flex items-center gap-3 rounded-lg px-3 py-1.5 transition-colors"

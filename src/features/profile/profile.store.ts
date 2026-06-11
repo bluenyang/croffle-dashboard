@@ -4,6 +4,8 @@ import type { Profile, SaveProfileRequest } from './profile.type';
 import { directus } from '@/util/directus';
 import { createItem, readItems, updateItem } from '@directus/sdk';
 
+const MEMBER_COLLECTION_NAME = import.meta.env.VITE_MEMBER_COLLECTION_NAME;
+
 export const useProfileStore = defineStore('profile', () => {
   const profile = ref<Profile | null>(null);
   const isLoading = ref<boolean>(false);
@@ -18,7 +20,7 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       directus.refresh();
       const resp = await directus.request(
-        readItems('homepage_team_members', {
+        readItems(MEMBER_COLLECTION_NAME, {
           filter: { user_id: { _eq: '$CURRENT_USER' } },
           limit: 1,
         }),
@@ -43,12 +45,12 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       if (profile.value?.id) {
         const updated = await directus.request(
-          updateItem('homepage_team_members', profile.value.id, payload),
+          updateItem(MEMBER_COLLECTION_NAME, profile.value.id, payload),
         );
         profile.value = updated as Profile;
       } else {
         const created = await directus.request(
-          createItem('homepage_team_members', {
+          createItem(MEMBER_COLLECTION_NAME, {
             ...payload,
             user_id: '$CURRENT_USER',
           }),
