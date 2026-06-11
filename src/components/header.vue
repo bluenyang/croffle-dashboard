@@ -1,14 +1,12 @@
 <script setup lang="ts">
   import type { DropdownMenuItem } from '@nuxt/ui/runtime/components/DropdownMenu.d.vue.js';
   import { computed, onMounted } from 'vue';
-  import { useRoute } from 'vue-router';
 
   import { useAuthStore } from '@/features/auth/auth.store';
   import { useProfileStore } from '@/features/profile/profile.store';
 
   const { logout, user } = useAuthStore();
   const { profile, hasProfile, fetchProfile } = useProfileStore();
-  const route = useRoute();
 
   const username = computed(() => {
     if (hasProfile) return profile?.nickname;
