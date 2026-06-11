@@ -17,11 +17,18 @@
 
 <template>
   <div class="mx-auto my-10 max-w-5xl space-y-10">
-    <div className="text-center sm:text-left">
-      <h1 className="text-3xl font-bold tracking-tight mb-2">
-        {{ hasProfile ? `안녕하세요, ${profile!.name}님` : 'Team Tools' }}
-      </h1>
-      <p className="text-muted-foreground">Croffle Dev의 모든 업무 도구에 한 곳에서 접근하세요.</p>
+    <div class="flex w-full flex-row items-center justify-between">
+      <div className="text-center sm:text-left">
+        <h1 className="text-3xl font-bold tracking-tight mb-2">
+          {{ hasProfile ? `안녕하세요, ${profile!.name}님` : 'Team Tools' }}
+        </h1>
+        <p className="text-muted-foreground">
+          Croffle Dev의 모든 업무 도구에 한 곳에서 접근하세요.
+        </p>
+      </div>
+      <UButton class="h-10 px-6" to="/contacts">
+        {{ '문의 처리' }}
+      </UButton>
     </div>
     <UAlert
       v-if="!hasProfile"
@@ -45,6 +52,15 @@
         actions: '[&>a]:text-sm [&>a]:px-4 [&>a]:py-2 [&>a]:rounded-xl',
       }"
     />
+    <!-- HACK: tailwind의 동적 색상 적용을 위해 미리 정의 -->
+    <div class="hidden">
+      <div class="bg-white" />
+      <div class="bg-rose-400" />
+      <div class="bg-emerald-400" />
+      <div class="bg-cyan-400" />
+      <div class="bg-blue-500" />
+      <div class="bg-indigo-400" />
+    </div>
     <div v-if="isLoading">로딩중..</div>
     <div v-else-if="err">에러발생 {{ err }}</div>
     <UContainer v-else class="grid gap-6 px-0 sm:px-0 md:grid-cols-3 md:px-0 lg:px-0 xl:gap-8">

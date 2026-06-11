@@ -7,6 +7,7 @@ import DashboardView from '@/pages/dashboard-view.vue';
 import ErrorView from '@/pages/error-view.vue';
 import ProfileView from '@/pages/profile-view.vue';
 import { useProfileStore } from '@/features/profile/profile.store';
+import ContactView from '@/pages/contact-view.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -21,6 +22,12 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+      meta: { requiresAuth: true, layout: 'default' },
+    },
+    {
+      path: '/contacts',
+      name: 'contact-submissions',
+      component: ContactView,
       meta: { requiresAuth: true, layout: 'default' },
     },
     {
