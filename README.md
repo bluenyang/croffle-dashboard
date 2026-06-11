@@ -1,5 +1,11 @@
-# Vue 3 + TypeScript + Vite
+# Croffle Dev Website
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Croffle Dev 팀의 멤버 전용 대시보드 웹사이트입니다.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+![License](https://img.shields.io/badge/license-MIT-green) ![Vite](https://img.shields.io/badge/Vite-9135FF?style=flat&logo=vite&logoColor=white) ![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?logo=vue.js&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-06B6D4?style=flat&logo=tailwind-css&logoColor=white)
+
+## 기술 스택
+
+- **Frontend**: Vue 3, TypeScript, Tailwind CSS, Nuxt UI 4
+- **Build Tool**: Vite
+- **Package Manager**: Yarn Berry (v4)
