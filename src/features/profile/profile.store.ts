@@ -49,12 +49,7 @@ export const useProfileStore = defineStore('profile', () => {
         );
         profile.value = updated as Profile;
       } else {
-        const created = await directus.request(
-          createItem(MEMBER_COLLECTION_NAME, {
-            ...payload,
-            user_id: '$CURRENT_USER',
-          }),
-        );
+        const created = await directus.request(createItem(MEMBER_COLLECTION_NAME, payload));
         profile.value = created as Profile;
       }
     } catch (e) {
