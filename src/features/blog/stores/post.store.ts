@@ -65,6 +65,7 @@ export const usePostStore = defineStore('blog_post', () => {
           filter: { blog_id: { _eq: blogId } },
           sort: ['-created_at'],
           fields: [...POST_LIST_FIELDS],
+          _ts: Date.now(),
         }),
       );
       posts.value = resp.map(mapPostListItem);
