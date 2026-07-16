@@ -3,6 +3,7 @@ import {
   createFolder,
   createItem,
   readFolders,
+  readItem,
   readItems,
   updateItem,
   uploadFiles,
@@ -126,8 +127,11 @@ export const usePostStore = defineStore('blog_post', () => {
     err.value = null;
 
     try {
+      // deep fields를 updateItem에 붙이면 관계 필드(author 등)가 null로 덮일 수 있어 조회는 분리
+      await directus.request(updateItem(POSTS_COLLECTION, postId, mapPostToPayload(req)));
+
       const resp = await directus.request<DirectusPost>(
-        updateItem(POSTS_COLLECTION, postId, mapPostToPayload(req), {
+        readItem(POSTS_COLLECTION, postId, {
           fields: [...POST_DETAIL_FIELDS],
         }),
       );

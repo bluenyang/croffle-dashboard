@@ -244,19 +244,60 @@
   }
 
   // --- Save ---
+  function sameIds(a: string[], b: string[]) {
+    if (a.length !== b.length) return false;
+    const set = new Set(b);
+    return a.every((id) => set.has(id));
+  }
+
   function buildPayload(overrideStatus?: PostStatus): Partial<PostSaveRequest> {
     const p = currentPost.value;
-    return {
-      title: title.value === '' ? p?.title : title.value,
-      content: content.value === '' ? p?.content : content.value,
-      status: overrideStatus ?? status.value,
-      visibility: visibility.value,
-      thumbnail: thumbnailId.value === null ? p?.thumbnail : thumbnailId.value,
-      // passwordHash: visibility.value === 'protected' ? passwordHash.value : null, // TODO: 비밀번호 해시 기능은 개발 중
-      categories: selectedCategories.value.map((id) => ({ categories_id: id })),
-      tags: selectedTags.value.map((t) => ({ tags_id: t.id })),
-      series: selectedSeries.value ? [{ series_id: selectedSeries.value.id }] : [],
-    };
+
+    // 지금글의 내용 없음 === 새 글
+    if (!p) {
+      return {
+        title: title.value,
+        content: content.value,
+        status: overrideStatus ?? status.value,
+        visibility: visibility.value,
+        thumbnail: thumbnailId.value,
+        // passwordHash: visibility.value === 'protected' ? passwordHash.value : null, // TODO: 비밀번호 해시 기능은 개발 중
+        categories: selectedCategories.value.map((id) => ({ categories_id: id })),
+        tags: selectedTags.value.map((t) => ({ tags_id: t.id })),
+        series: selectedSeries.value ? [{ series_id: selectedSeries.value.id }] : [],
+      };
+    }
+
+    // 변경된 내용만 저장
+    const payload: Partial<PostSaveRequest> = {};
+
+    if (title.value !== p.title) payload.title = title.value;
+    if (content.value !== p.content) payload.content = content.value;
+    if (overrideStatus !== undefined && overrideStatus !== p.status) {
+      payload.status = overrideStatus;
+    }
+    if (visibility.value !== p.visibility) payload.visibility = visibility.value;
+    if (thumbnailId.value !== p.thumbnail) payload.thumbnail = thumbnailId.value;
+
+    const nextCategoryIds = selectedCategories.value;
+    const prevCategoryIds = p.categories.map((c) => c.id);
+    if (!sameIds(nextCategoryIds, prevCategoryIds)) {
+      payload.categories = nextCategoryIds.map((id) => ({ categories_id: id }));
+    }
+
+    const nextTagIds = selectedTags.value.map((t) => t.id);
+    const prevTagIds = p.tags.map((t) => t.id);
+    if (!sameIds(nextTagIds, prevTagIds)) {
+      payload.tags = selectedTags.value.map((t) => ({ tags_id: t.id }));
+    }
+
+    const nextSeriesId = selectedSeries.value?.id ?? null;
+    const prevSeriesId = p.series[0]?.id ?? null;
+    if (nextSeriesId !== prevSeriesId) {
+      payload.series = nextSeriesId ? [{ series_id: nextSeriesId }] : [];
+    }
+
+    return payload;
   }
 
   async function save(overrideStatus?: PostStatus) {
