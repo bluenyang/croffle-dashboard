@@ -1,8 +1,4 @@
 <script setup lang="ts">
-  import Image from '@tiptap/extension-image';
-  import { Placeholder } from '@tiptap/extension-placeholder';
-  import { StarterKit } from '@tiptap/starter-kit';
-  import { useEditor, EditorContent } from '@tiptap/vue-3';
   import { useColorMode } from '@vueuse/core';
   import {
     DropdownToolbar,
@@ -12,8 +8,7 @@
   } from 'md-editor-v3';
   import 'md-editor-v3/lib/style.css';
   import { storeToRefs } from 'pinia';
-  import { Markdown } from 'tiptap-markdown';
-  import { computed, onBeforeUnmount, ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
 
   import { useBlogStore } from '@/features/blog/stores/blog.store';
@@ -80,38 +75,7 @@
   const isCreatingTag = ref(false);
   const isCreatingSeries = ref(false);
 
-  // --- Editor mode ---
-  type EditorMode = 'wysiwyg' | 'markdown';
-  const editorMode = ref<EditorMode>('wysiwyg');
-
   const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL as string;
-
-  type TipTapMarkdownStorage = { markdown: { getMarkdown(): string } };
-
-  // --- TipTap editor ---
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Image,
-      Markdown.configure({ html: false, tightLists: true }),
-      Placeholder.configure({ placeholder: '내용을 입력하세요...' }),
-    ],
-    content: '',
-    onUpdate({ editor: e }) {
-      content.value = (e.storage as unknown as TipTapMarkdownStorage).markdown.getMarkdown();
-    },
-  });
-
-  // Sync content → TipTap when switching to WYSIWYG
-  watch(editorMode, (mode) => {
-    if (mode === 'wysiwyg' && editor.value) {
-      editor.value.commands.setContent(content.value);
-    }
-  });
-
-  onBeforeUnmount(() => {
-    editor.value?.destroy();
-  });
 
   function resetForm() {
     title.value = '';
@@ -128,7 +92,6 @@
     newTagName.value = '';
     newSeriesName.value = '';
     postStore.clearCurrentPost();
-    editor.value?.commands.setContent('');
   }
 
   async function loadEditor() {
@@ -175,7 +138,6 @@
       selectedCategories.value = p.categories.map((c) => c.id);
       selectedTags.value = [...p.tags];
       selectedSeriesId.value = p.series[0]?.id ?? null;
-      editor.value?.commands.setContent(p.content);
     }
   }
 
@@ -342,14 +304,6 @@
     ]);
   }
 
-  function handleSelectWysiwygMode() {
-    editorMode.value = 'wysiwyg';
-  }
-
-  function handleSelectMarkdownMode() {
-    editorMode.value = 'markdown';
-  }
-
   function handleSelectCategory(categoryId: string) {
     if (selectedCategories.value.includes(categoryId)) {
       selectedCategories.value = selectedCategories.value.filter((id) => id !== categoryId);
@@ -389,7 +343,7 @@
 
   function insertImgGrid(columns: 2 | 3) {
     mdEditorRef.value?.insert((selectedText) => ({
-      targetValue: `::prose-img-grid{columns="${columns}"}\n${selectedText || Array(columns).fill('![]()').join('\n')}\n::`,
+      targetValue: `::prose-img-grid{columns="${columns}"}\n${selectedText || Array(columns).fill('![]()').join('\n\n')}\n::`,
       select: true,
       deviationStart: -3,
       deviationEnd: 0,
@@ -452,39 +406,7 @@
     <div class="flex min-h-0 flex-1">
       <!-- Editor area -->
       <div class="flex min-w-0 flex-1 flex-col">
-        <!-- Mode toggle -->
-        <div class="border-default flex items-center gap-1 border-b px-4 py-1.5">
-          <UButton
-            size="xs"
-            :variant="editorMode === 'wysiwyg' ? 'soft' : 'ghost'"
-            color="neutral"
-            icon="i-lucide-type"
-            @click="handleSelectWysiwygMode"
-          >
-            WYSIWYG
-          </UButton>
-          <UButton
-            size="xs"
-            :variant="editorMode === 'markdown' ? 'soft' : 'ghost'"
-            color="neutral"
-            icon="i-lucide-code"
-            @click="handleSelectMarkdownMode"
-          >
-            Raw Markdown
-          </UButton>
-        </div>
-
-        <!-- TipTap editor -->
-        <div v-show="editorMode === 'wysiwyg'" class="min-h-0 flex-1 overflow-y-auto p-6">
-          <EditorContent
-            :editor="editor"
-            class="prose dark:prose-invert [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground max-w-none focus:outline-none [&_.ProseMirror]:min-h-75 [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]"
-          />
-        </div>
-
-        <!-- md-editor-v3 -->
         <MdEditor
-          v-show="editorMode === 'markdown'"
           ref="mdEditorRef"
           v-model="content"
           :theme="colorMode === 'dark' ? 'dark' : 'light'"
