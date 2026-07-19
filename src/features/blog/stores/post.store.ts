@@ -15,9 +15,6 @@ import { mapPost, mapPostListItem, mapPostToPayload } from '../mappers/post.mapp
 import type { DirectusPost, DirectusUploadFileResponse } from '../types/directus.types';
 import type { Post, PostListItem, PostSaveRequest } from '../types/post.types';
 
-const POSTS_COLLECTION = import.meta.env.VITE_BLOG_COLLECTION_NAME as string;
-// const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL;
-
 const POST_LIST_FIELDS = [
   'id',
   'blog_id',
@@ -61,7 +58,7 @@ export const usePostStore = defineStore('blog_post', () => {
     err.value = null;
     try {
       const resp = await directus.request<DirectusPost[]>(
-        readItems(POSTS_COLLECTION, {
+        readItems('posts', {
           filter: { blog_id: { _eq: blogId } },
           sort: ['-created_at'],
           fields: [...POST_LIST_FIELDS],
@@ -82,7 +79,7 @@ export const usePostStore = defineStore('blog_post', () => {
     currentPost.value = null;
     try {
       const resp = await directus.request<DirectusPost[]>(
-        readItems(POSTS_COLLECTION, {
+        readItems('posts', {
           filter: { blog_id: { _eq: blogId }, post_idx: { _eq: postIdx } },
           fields: [...POST_DETAIL_FIELDS],
           limit: 1,
@@ -103,7 +100,7 @@ export const usePostStore = defineStore('blog_post', () => {
     try {
       const payload = { ...mapPostToPayload(req), blog_id: blogId };
       const resp = await directus.request<DirectusPost>(
-        createItem(POSTS_COLLECTION, payload, {
+        createItem('posts', payload, {
           fields: [...POST_DETAIL_FIELDS],
         }),
       );
@@ -129,10 +126,10 @@ export const usePostStore = defineStore('blog_post', () => {
 
     try {
       // deep fields를 updateItem에 붙이면 관계 필드(author 등)가 null로 덮일 수 있어 조회는 분리
-      await directus.request(updateItem(POSTS_COLLECTION, postId, mapPostToPayload(req)));
+      await directus.request(updateItem('posts', postId, mapPostToPayload(req)));
 
       const resp = await directus.request<DirectusPost>(
-        readItem(POSTS_COLLECTION, postId, {
+        readItem('posts', postId, {
           fields: [...POST_DETAIL_FIELDS],
         }),
       );

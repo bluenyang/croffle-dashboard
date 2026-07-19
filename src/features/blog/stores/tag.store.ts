@@ -7,8 +7,6 @@ import { mapTag, mapTagToPayload } from '../mappers/tag.mapper';
 import type { DirectusTag } from '../types/directus.types';
 import type { Tag, TagSaveRequest } from '../types/tag.types';
 
-const TAGS_COLLECTION = import.meta.env.VITE_TAGS_COLLECTION_NAME as string;
-
 export const useTagStore = defineStore('blog_tag', () => {
   const tags = ref<Tag[]>([]);
   const isLoading = ref(false);
@@ -19,7 +17,7 @@ export const useTagStore = defineStore('blog_tag', () => {
     err.value = null;
     try {
       const resp = await directus.request<DirectusTag[]>(
-        readItems(TAGS_COLLECTION, {
+        readItems('tags', {
           filter: { blog_id: { _eq: blogId } },
           sort: ['name'],
           _ts: Date.now(),
@@ -36,9 +34,7 @@ export const useTagStore = defineStore('blog_tag', () => {
   async function createTag(req: TagSaveRequest): Promise<Tag | null> {
     err.value = null;
     try {
-      const resp = await directus.request<DirectusTag>(
-        createItem(TAGS_COLLECTION, mapTagToPayload(req)),
-      );
+      const resp = await directus.request<DirectusTag>(createItem('tags', mapTagToPayload(req)));
       const created = mapTag(resp);
       tags.value.push(created);
       tags.value.sort((a, b) => a.name.localeCompare(b.name));

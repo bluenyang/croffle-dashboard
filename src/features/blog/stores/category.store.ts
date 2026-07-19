@@ -7,8 +7,6 @@ import { buildCategoryTree, mapCategory, mapCategoryToPayload } from '../mappers
 import type { DirectusCategory } from '../types/directus.types';
 import type { Category, CategorySaveRequest } from '../types/category.types';
 
-const CATEGORIES_COLLECTION = import.meta.env.VITE_CATEGORIES_COLLECTION_NAME as string;
-
 export const useCategoryStore = defineStore('blog_category', () => {
   const categories = ref<Category[]>([]);
   const categoryTree = ref<Category[]>([]);
@@ -21,7 +19,7 @@ export const useCategoryStore = defineStore('blog_category', () => {
     err.value = null;
     try {
       const resp = await directus.request<DirectusCategory[]>(
-        readItems(CATEGORIES_COLLECTION, {
+        readItems('categories', {
           filter: { blog_id: { _eq: blogId } },
           sort: ['sort_order', 'name'],
           _ts: Date.now(),
@@ -41,7 +39,7 @@ export const useCategoryStore = defineStore('blog_category', () => {
     err.value = null;
     try {
       const resp = await directus.request<DirectusCategory>(
-        createItem(CATEGORIES_COLLECTION, mapCategoryToPayload(req)),
+        createItem('categories', mapCategoryToPayload(req)),
       );
       const created = mapCategory(resp);
       categories.value.push(created);
@@ -65,9 +63,7 @@ export const useCategoryStore = defineStore('blog_category', () => {
       if (req.parentId !== undefined) payload.parent_id = req.parentId;
       if (req.sortOrder !== undefined) payload.sort_order = req.sortOrder;
 
-      const resp = await directus.request<DirectusCategory>(
-        updateItem(CATEGORIES_COLLECTION, id, payload),
-      );
+      const resp = await directus.request<DirectusCategory>(updateItem('categories', id, payload));
       const updated = mapCategory(resp);
       const idx = categories.value.findIndex((c) => c.id === id);
       if (idx !== -1) categories.value[idx] = updated;
@@ -85,7 +81,7 @@ export const useCategoryStore = defineStore('blog_category', () => {
     isSaving.value = true;
     err.value = null;
     try {
-      await directus.request(deleteItem(CATEGORIES_COLLECTION, id));
+      await directus.request(deleteItem('categories', id));
       categories.value = categories.value.filter((c) => c.id !== id);
       categoryTree.value = buildCategoryTree(categories.value);
       return true;

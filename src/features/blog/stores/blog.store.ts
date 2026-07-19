@@ -7,10 +7,7 @@ import { mapBlogMember } from '../mappers/blog.mapper';
 import type { DirectusBlogMember } from '../types/directus.types';
 import type { Blog, BlogMember } from '../types/blog.types';
 
-const BLOGS_COLLECTION = import.meta.env.VITE_BLOGS_COLLECTION_NAME as string;
-const BLOG_MEMBERS_COLLECTION = import.meta.env.VITE_BLOG_MEMBERS_COLLECTION_NAME as string;
-
-export const useBlogStore = defineStore('blog', () => {
+export const useBlogStore = defineStore('blogs', () => {
   const members = ref<BlogMember[]>([]);
   const isLoading = ref(false);
   const err = ref<string | null>(null);
@@ -31,7 +28,7 @@ export const useBlogStore = defineStore('blog', () => {
 
     try {
       const resp = await directus.request<DirectusBlogMember[]>(
-        readItems(BLOG_MEMBERS_COLLECTION, {
+        readItems('blog_members', {
           filter: { user_id: { _eq: '$CURRENT_USER' } },
           fields: ['id', 'role', 'user_id', 'blog_id.*'],
           _ts: Date.now(),
@@ -46,15 +43,25 @@ export const useBlogStore = defineStore('blog', () => {
     }
   }
 
-  async function updateBlogDescription(blogId: string, description: string): Promise<boolean> {
+  async function updateBlog(
+    blogId: string,
+    data: { name?: string; description?: string },
+  ): Promise<boolean> {
     err.value = null;
     try {
-      await directus.request(updateItem(BLOGS_COLLECTION, blogId, { description }));
+      const payload: { name?: string; description?: string } = {};
+      if (data.name !== undefined) payload.name = data.name;
+      if (data.description !== undefined) payload.description = data.description;
+
+      await directus.request(updateItem('blog', blogId, payload));
       const member = members.value.find((m) => m.blog.id === blogId);
-      if (member) member.blog.description = description;
+      if (member) {
+        if (data.name !== undefined) member.blog.name = data.name;
+        if (data.description !== undefined) member.blog.description = data.description;
+      }
       return true;
     } catch {
-      err.value = '블로그 설명 수정에 실패했습니다.';
+      err.value = '블로그 정보 수정에 실패했습니다.';
       return false;
     }
   }
@@ -67,6 +74,6 @@ export const useBlogStore = defineStore('blog', () => {
     getBlogBySlug,
     getMemberBySlug,
     fetchMyBlogs,
-    updateBlogDescription,
+    updateBlog,
   };
 });

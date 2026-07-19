@@ -7,8 +7,6 @@ import { mapSeries, mapSeriesToPayload } from '../mappers/series.mapper';
 import type { DirectusSeries } from '../types/directus.types';
 import type { Series, SeriesSaveRequest } from '../types/series.types';
 
-const SERIES_COLLECTION = import.meta.env.VITE_SERIES_COLLECTION_NAME as string;
-
 export const useSeriesStore = defineStore('blog_series', () => {
   const seriesList = ref<Series[]>([]);
   const isLoading = ref(false);
@@ -19,7 +17,7 @@ export const useSeriesStore = defineStore('blog_series', () => {
     err.value = null;
     try {
       const resp = await directus.request<DirectusSeries[]>(
-        readItems(SERIES_COLLECTION, {
+        readItems('series', {
           filter: { blog_id: { _eq: blogId } },
           sort: ['name'],
           _ts: Date.now(),
@@ -37,7 +35,7 @@ export const useSeriesStore = defineStore('blog_series', () => {
     err.value = null;
     try {
       const resp = await directus.request<DirectusSeries>(
-        createItem(SERIES_COLLECTION, mapSeriesToPayload(req)),
+        createItem('series', mapSeriesToPayload(req)),
       );
       const created = mapSeries(resp);
       seriesList.value.push(created);
