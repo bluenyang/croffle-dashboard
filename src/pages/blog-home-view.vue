@@ -75,7 +75,14 @@
       </div>
 
       <div v-else class="grid gap-4 sm:grid-cols-2">
-        <UCard v-for="member in members" :key="member.id" class="bg-card flex flex-col">
+        <UCard
+          v-for="member in members"
+          :key="member.id"
+          class="bg-card flex flex-col"
+          :ui="{
+            footer: 'px-1 sm:px-1',
+          }"
+        >
           <template #header>
             <div class="flex items-center justify-between gap-2">
               <span class="truncate text-lg font-semibold">{{ member.blog.name }}</span>
@@ -125,7 +132,7 @@
           </div>
 
           <template #footer>
-            <div class="divide-border flex justify-center gap-2 divide-x">
+            <div class="divide-border flex justify-center divide-x">
               <div class="flex-1">
                 <UButton
                   size="md"
