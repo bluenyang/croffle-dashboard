@@ -3,6 +3,7 @@ export interface DirectusBlog {
   slug: string;
   name: string;
   description?: string;
+  url: string | null;
   created_at: string;
 }
 
@@ -70,6 +71,42 @@ export interface DirectusTag {
   blog_id: string;
   name: string;
   slug: string;
+}
+
+export interface DirectusNavigation {
+  id: string;
+  blog_id: string;
+  label: string;
+  url: string | null;
+  icon: string | null;
+  is_category: boolean;
+  parent_id: string | null;
+  sort_order: number;
+}
+
+export interface DirectusNavigationSavePayload {
+  blog_id: string;
+  label: string;
+  url?: string | null;
+  icon?: string | null;
+  is_category?: boolean;
+  parent_id?: string | null;
+  sort_order?: number;
+}
+
+export interface DirectusBlogSettings {
+  id: string;
+  blog_id: string;
+  allow_ccl: boolean;
+  allow_commercial: boolean;
+  change_content: 'allow' | 'share_alike' | 'no_derivatives';
+}
+
+export interface DirectusBlogSettingsSavePayload {
+  blog_id: string;
+  allow_ccl: boolean;
+  allow_commercial: boolean;
+  change_content: 'allow' | 'share_alike' | 'no_derivatives';
 }
 
 export interface DirectusTagSavePayload {

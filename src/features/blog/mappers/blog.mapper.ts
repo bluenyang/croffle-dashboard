@@ -7,6 +7,7 @@ export function mapBlog(raw: DirectusBlog): Blog {
     slug: raw.slug,
     name: raw.name,
     description: raw.description,
+    url: raw.url ?? null,
     createdAt: raw.created_at,
   };
 }

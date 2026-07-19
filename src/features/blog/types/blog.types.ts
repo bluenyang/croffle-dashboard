@@ -5,6 +5,7 @@ export interface Blog {
   slug: string;
   name: string;
   description?: string;
+  url: string | null;
   createdAt: string;
 }
 
