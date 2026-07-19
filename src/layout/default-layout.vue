@@ -4,7 +4,7 @@
 
 <template>
   <Header />
-  <UMain class="min-h-screen">
+  <UMain>
     <slot />
   </UMain>
 </template>

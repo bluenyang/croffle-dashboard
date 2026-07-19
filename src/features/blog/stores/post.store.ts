@@ -60,7 +60,7 @@ export const usePostStore = defineStore('blog_post', () => {
       const resp = await directus.request<DirectusPost[]>(
         readItems('posts', {
           filter: { blog_id: { _eq: blogId } },
-          sort: ['-created_at'],
+          sort: ['-post_idx', '-published_at', '-created_at'],
           fields: [...POST_LIST_FIELDS],
           _ts: Date.now(),
         }),
