@@ -114,7 +114,7 @@
                   variant="ghost"
                   color="neutral"
                   disabled
-                  icon="i-lucide-link-off"
+                  icon="i-lucide-link-2-off"
                   class="w-full justify-center"
                 >
                   {{ '링크 없음' }}

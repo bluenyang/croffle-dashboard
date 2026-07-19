@@ -90,6 +90,7 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.requiresAuth && !isLoggedIn) {
+    sessionStorage.setItem('redirect_url', to.fullPath);
     login();
     return false;
   }

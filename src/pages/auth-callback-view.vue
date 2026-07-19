@@ -8,9 +8,11 @@
   const auth = useAuthStore();
 
   onMounted(async () => {
+    const redirectUrl = sessionStorage.getItem('redirect_url');
     try {
       await auth.handleCallback();
-      router.replace('/');
+      sessionStorage.removeItem('redirect_url');
+      router.replace(redirectUrl || '/');
     } catch (err) {
       console.error(err);
       router.replace('/error');
