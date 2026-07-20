@@ -49,3 +49,16 @@ export interface PostSaveRequest {
   tags?: Array<{ tags_id: string }>;
   series?: Array<{ series_id: string }>;
 }
+
+export interface FolderImage {
+  id: string;
+  title: string | null;
+  filenameDownload: string;
+}
+
+export interface FolderImagesPage {
+  items: FolderImage[];
+  total: number;
+}
+
+export const FOLDER_IMAGES_PAGE_SIZE = 25;

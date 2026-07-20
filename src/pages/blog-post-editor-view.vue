@@ -11,6 +11,7 @@
   import { computed, ref, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
 
+  import ThumbnailLibraryModal from '@/features/blog/components/thumbnail-library-modal.vue';
   import { useBlogStore } from '@/features/blog/stores/blog.store';
   import { useCategoryStore } from '@/features/blog/stores/category.store';
   import { usePostStore } from '@/features/blog/stores/post.store';
@@ -154,6 +155,8 @@
   );
 
   // --- Thumbnail ---
+  const showLibrary = ref(false);
+
   async function handleThumbnailChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
@@ -162,6 +165,11 @@
       thumbnailId.value = id;
       thumbnailPreview.value = `${DIRECTUS_URL}/assets/${id}`;
     }
+  }
+
+  function selectLibraryThumbnail(fileId: string) {
+    thumbnailId.value = fileId;
+    thumbnailPreview.value = `${DIRECTUS_URL}/assets/${fileId}`;
   }
 
   function removeThumbnail() {
@@ -340,6 +348,10 @@
     ]);
   }
 
+  function handleOpenLibrary() {
+    showLibrary.value = true;
+  }
+
   const flatCategories = computed(() => flattenCategories(categoryStore.categoryTree));
 
   const mdEditorRef = ref<ExposeParam>();
@@ -516,13 +528,14 @@
 
         <!-- Thumbnail -->
         <div class="flex flex-col gap-2">
-          <label class="text-base font-medium tracking-wide opacity-60">썸네일</label>
-          <div v-if="thumbnailPreview" class="relative">
-            <img
-              :src="thumbnailPreview"
-              alt="썸네일 미리보기"
-              class="aspect-video w-full rounded-md object-cover"
-            />
+          <label for="thumbnail-input" class="text-base font-medium tracking-wide opacity-60">
+            {{ '썸네일' }}
+          </label>
+          <div
+            v-if="thumbnailPreview"
+            class="border-default relative aspect-video w-full overflow-hidden rounded-md border"
+          >
+            <img :src="thumbnailPreview" alt="썸네일 미리보기" class="size-full object-cover" />
             <UButton
               size="xs"
               color="error"
@@ -532,13 +545,44 @@
               @click="removeThumbnail"
             />
           </div>
-          <label
-            class="hover:bg-accent/30 border-default flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed py-3 text-sm transition-colors"
+          <div
+            v-else
+            class="border-default flex aspect-video w-full items-center justify-center gap-4 rounded-md border border-dashed"
           >
-            <UIcon name="i-lucide-upload" class="size-5" />
-            <span class="text-base">{{ isUploading ? '업로드 중...' : '이미지 선택' }}</span>
-            <input type="file" accept="image/*" class="sr-only" @change="handleThumbnailChange" />
-          </label>
+            <label
+              class="hover:bg-accent/30 text-muted hover:text-foreground flex size-12 cursor-pointer items-center justify-center rounded-md transition-colors"
+              :class="isUploading ? 'pointer-events-none opacity-50' : ''"
+              :title="isUploading ? '업로드 중...' : '이미지 업로드'"
+            >
+              <UIcon
+                :name="isUploading ? 'i-lucide-loader-circle' : 'i-lucide-upload'"
+                class="size-6"
+                :class="isUploading ? 'animate-spin' : ''"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                class="sr-only"
+                :disabled="isUploading"
+                @change="handleThumbnailChange"
+              />
+            </label>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-folder"
+              class="size-12 justify-center"
+              :ui="{ leadingIcon: 'size-6' }"
+              title="라이브러리에서 선택"
+              @click="handleOpenLibrary"
+            />
+          </div>
+          <ThumbnailLibraryModal
+            v-model:open="showLibrary"
+            :blog-slug="blogSlug"
+            :selected-id="thumbnailId"
+            @select="selectLibraryThumbnail"
+          />
         </div>
 
         <!-- Categories -->

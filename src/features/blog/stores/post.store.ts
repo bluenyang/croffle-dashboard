@@ -1,7 +1,9 @@
 import { directus } from '@/util/directus';
 import {
+  aggregate,
   createFolder,
   createItem,
+  readFiles,
   readFolders,
   readItem,
   readItems,
@@ -12,8 +14,13 @@ import { defineStore } from 'pinia';
 import { ref, toRaw } from 'vue';
 
 import { mapPost, mapPostListItem, mapPostToPayload } from '../mappers/post.mapper';
-import type { DirectusPost, DirectusUploadFileResponse } from '../types/directus.types';
-import type { Post, PostListItem, PostSaveRequest } from '../types/post.types';
+import type {
+  DirectusFileListItem,
+  DirectusPost,
+  DirectusUploadFileResponse,
+} from '../types/directus.types';
+import type { FolderImagesPage, Post, PostListItem, PostSaveRequest } from '../types/post.types';
+import { FOLDER_IMAGES_PAGE_SIZE } from '../types/post.types';
 
 const POST_LIST_FIELDS = [
   'id',
@@ -162,6 +169,60 @@ export const usePostStore = defineStore('blog_post', () => {
     return (created as { id: string }).id;
   }
 
+  async function resolveFolderId(blogSlug: string): Promise<string | null> {
+    const existing = await directus.request(
+      readFolders({ filter: { name: { _eq: blogSlug } }, limit: 1 }),
+    );
+    return existing[0]?.id ?? null;
+  }
+
+  async function fetchFolderImages(blogSlug: string, page: number): Promise<FolderImagesPage> {
+    const empty: FolderImagesPage = { items: [], total: 0 };
+    err.value = null;
+
+    try {
+      const folderId = await resolveFolderId(blogSlug);
+      if (!folderId) return empty;
+
+      const filter = {
+        folder: { _eq: folderId },
+        type: { _starts_with: 'image/' },
+      };
+
+      const [files, countResp] = await Promise.all([
+        directus.request<DirectusFileListItem[]>(
+          readFiles({
+            filter,
+            fields: ['id', 'title', 'filename_download'],
+            sort: ['-uploaded_on'],
+            limit: FOLDER_IMAGES_PAGE_SIZE,
+            page,
+          }),
+        ),
+        directus.request(
+          aggregate('directus_files', {
+            aggregate: { count: '*' },
+            query: { filter },
+          }),
+        ),
+      ]);
+
+      const total = Number((countResp as Array<{ count: string | null }>)[0]?.count ?? 0);
+
+      return {
+        items: files.map((f) => ({
+          id: f.id,
+          title: f.title,
+          filenameDownload: f.filename_download,
+        })),
+        total,
+      };
+    } catch {
+      err.value = '이미지 목록을 불러오는데 실패했습니다.';
+      return empty;
+    }
+  }
+
   async function uploadThumbnail(file: File, blogSlug: string): Promise<string | null> {
     isUploading.value = true;
     err.value = null;
@@ -203,6 +264,7 @@ export const usePostStore = defineStore('blog_post', () => {
     fetchPost,
     createPost,
     updatePost,
+    fetchFolderImages,
     uploadThumbnail,
     clearCurrentPost,
   };

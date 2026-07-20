@@ -146,3 +146,9 @@ export interface DirectusUploadFileResponse {
     mime_type: string;
   };
 }
+
+export interface DirectusFileListItem {
+  id: string;
+  title: string | null;
+  filename_download: string;
+}
