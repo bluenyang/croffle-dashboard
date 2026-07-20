@@ -8,4 +8,5 @@ export interface Tag {
 export interface TagSaveRequest {
   blogId: string;
   name: string;
+  slug?: string;
 }

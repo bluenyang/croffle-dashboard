@@ -25,6 +25,13 @@
   } from '@/features/blog/types/post.types';
   import type { Series } from '@/features/blog/types/series.types';
   import type { Tag } from '@/features/blog/types/tag.types';
+  import { toTagSlug } from '@/features/blog/utils/slug';
+
+  type TagItem = Tag & { label: string };
+
+  function toTagItem(tag: Tag): TagItem {
+    return { ...tag, label: tag.name };
+  }
 
   const route = useRoute();
   const router = useRouter();
@@ -71,7 +78,6 @@
   );
 
   // --- Inline creation state ---
-  const newTagName = ref('');
   const newSeriesName = ref('');
   const isCreatingTag = ref(false);
   const isCreatingSeries = ref(false);
@@ -85,9 +91,24 @@
     selectedCategories,
     selectedTags,
     selectedSeriesId,
-    newTagName,
     newSeriesName,
   });
+
+  const tagItems = computed(() => tags.value.map(toTagItem));
+
+  const selectedTagItems = computed({
+    get: (): TagItem[] => selectedTags.value.map(toTagItem),
+    set: (items: TagItem[]) => {
+      selectedTags.value = items.map(({ id, blogId, name, slug }) => ({
+        id,
+        blogId,
+        name,
+        slug,
+      }));
+    },
+  });
+
+  const tagMenuKey = ref(0);
 
   const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL as string;
 
@@ -103,7 +124,6 @@
     selectedCategories.value = [];
     selectedTags.value = [];
     selectedSeriesId.value = null;
-    newTagName.value = '';
     newSeriesName.value = '';
     postStore.clearCurrentPost();
   }
@@ -191,28 +211,43 @@
   }
 
   // --- Tags ---
-  function toggleTag(tag: Tag) {
-    const idx = selectedTags.value.findIndex((t) => t.id === tag.id);
-    if (idx === -1) selectedTags.value.push(tag);
-    else selectedTags.value.splice(idx, 1);
+  function findTagBySlug(slug: string): Tag | undefined {
+    return tags.value.find((t) => t.slug === slug);
   }
 
-  function isTagSelected(tagId: string) {
-    return selectedTags.value.some((t) => t.id === tagId);
+  function addTagIfMissing(tag: Tag) {
+    if (!selectedTags.value.some((t) => t.id === tag.id)) {
+      selectedTags.value.push(tag);
+    }
   }
 
-  async function createAndAddTag() {
-    if (!newTagName.value.trim() || !currentBlog.value) return;
+  async function applyTagByName(rawName: string) {
+    const name = rawName.trim();
+    if (!name || !currentBlog.value) return;
+
+    const slug = toTagSlug(name);
+    if (!slug) return;
+
+    const existing = findTagBySlug(slug);
+    if (existing) {
+      addTagIfMissing(existing);
+      return;
+    }
+
     isCreatingTag.value = true;
     const created = await tagStore.createTag({
       blogId: currentBlog.value.id,
-      name: newTagName.value.trim(),
+      name,
+      slug,
     });
-    if (created) {
-      selectedTags.value.push(created);
-      newTagName.value = '';
-    }
+    if (created) addTagIfMissing(created);
     isCreatingTag.value = false;
+  }
+
+  async function handleCreateTag(name: string) {
+    await applyTagByName(name);
+    // create-item은 select를 preventDefault 해서 searchTerm이 안 비워짐 → remount로 초기화
+    tagMenuKey.value += 1;
   }
 
   // --- Series ---
@@ -632,22 +667,27 @@
           :ui="{ label: 'text-base font-medium tracking-wide opacity-60' }"
         >
           <div class="border-default max-h-48 space-y-1 overflow-y-auto rounded-md border p-2">
-            <UCheckbox
+            <div
               v-for="cat in flatCategories"
               :key="cat.id"
-              :model-value="selectedCategories.includes(cat.id)"
-              size="md"
-              class="hover:bg-accent/30 w-full rounded px-1 py-0.5"
+              class="hover:bg-accent/30 flex items-center gap-2 rounded px-1 py-0.5"
               :style="{ paddingLeft: `${cat.depth * 12 + 4}px` }"
-              @update:model-value="handleSelectCategory(cat.id)"
             >
-              <template #label>
-                <span class="flex items-center gap-2 truncate">
-                  <UIcon v-if="cat.icon" :name="cat.icon" class="size-4 shrink-0" />
-                  <span class="truncate text-sm">{{ cat.name }}</span>
-                </span>
-              </template>
-            </UCheckbox>
+              <UCheckbox
+                :id="`category-${cat.id}`"
+                :model-value="selectedCategories.includes(cat.id)"
+                size="md"
+                class="min-w-0 flex-1"
+                @update:model-value="handleSelectCategory(cat.id)"
+              >
+                <template #label>
+                  <span class="flex min-w-0 items-center gap-2">
+                    <UIcon v-if="cat.icon" :name="cat.icon" class="size-4 shrink-0" />
+                    <span class="truncate text-sm">{{ cat.name }}</span>
+                  </span>
+                </template>
+              </UCheckbox>
+            </div>
             <p v-if="flatCategories.length === 0" class="text-muted py-2 text-center text-sm">
               카테고리 없음
             </p>
@@ -660,39 +700,30 @@
           class="text-base"
           :ui="{ label: 'text-base font-medium tracking-wide opacity-60' }"
         >
-          <div class="space-y-2">
-            <div class="flex flex-wrap gap-2">
-              <UBadge
-                v-for="tag in tags"
-                :key="tag.id"
-                :variant="isTagSelected(tag.id) ? 'solid' : 'outline'"
-                color="neutral"
-                size="md"
-                class="cursor-pointer select-none"
-                @click="toggleTag(tag)"
-              >
-                {{ tag.name }}
-              </UBadge>
-              <p v-if="tags.length === 0" class="text-muted text-sm">태그 없음</p>
-            </div>
-            <div class="flex gap-1">
-              <UInput
-                v-model="newTagName"
-                size="md"
-                placeholder="새 태그 이름"
-                class="flex-1"
-                @keydown.enter="createAndAddTag"
-              />
-              <UButton
-                size="md"
-                variant="outline"
-                color="neutral"
-                icon="i-lucide-plus"
-                :loading="isCreatingTag"
-                @click="createAndAddTag"
-              />
-            </div>
-          </div>
+          <UInputMenu
+            :key="tagMenuKey"
+            v-model="selectedTagItems"
+            :items="tagItems"
+            multiple
+            by="id"
+            create-item
+            :filter-fields="['label', 'slug', 'name']"
+            placeholder="태그 검색 또는 추가"
+            size="md"
+            class="w-full"
+            :loading="isCreatingTag"
+            :ui="{
+              tagsItem: 'max-w-[9rem] min-w-0',
+              tagsItemText: 'truncate min-w-0',
+              itemWrapper: 'min-w-0',
+              itemLabel: 'truncate',
+            }"
+            @create="handleCreateTag"
+          >
+            <template #create-item-label="{ item }">
+              {{ `"${item}" 추가` }}
+            </template>
+          </UInputMenu>
         </UFormField>
 
         <UFormField
