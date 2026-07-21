@@ -145,6 +145,10 @@
     postStore.clearCurrentPost();
   }
 
+  // store의 currentPost는 unmount 후에도 남으므로, 재fetch 생략은
+  // 같은 인스턴스 내 재실행(새 글 저장 직후 edit URL replace)에만 적용한다.
+  let hasLoadedInInstance = false;
+
   async function loadEditor() {
     if (!currentBlog.value) {
       router.replace({ name: 'blog-home' });
@@ -153,8 +157,8 @@
 
     const blogId = currentBlog.value.id;
 
-    // 새 글 저장 직후 edit URL로 replace된 경우, 이미 로드된 글이면 재fetch 생략
     if (
+      hasLoadedInInstance &&
       isEditMode.value &&
       postIdx.value !== undefined &&
       currentPost.value?.postIdx === postIdx.value &&
@@ -162,6 +166,7 @@
     ) {
       return;
     }
+    hasLoadedInInstance = true;
 
     resetForm();
 
