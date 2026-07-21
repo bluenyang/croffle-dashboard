@@ -22,7 +22,6 @@ export const useBlogSettingsStore = defineStore('blog_settings', () => {
         readItems('blog_settings', {
           filter: { blog_id: { _eq: blogId } },
           limit: 1,
-          _ts: Date.now(),
         }),
       );
       settings.value = resp[0] ? mapBlogSettings(resp[0]) : null;

@@ -31,7 +31,6 @@ export const useBlogStore = defineStore('blogs', () => {
         readItems('blog_members', {
           filter: { user_id: { _eq: '$CURRENT_USER' } },
           fields: ['id', 'role', 'user_id', 'blog_id.*'],
-          _ts: Date.now(),
         }),
       );
       members.value = resp.map(mapBlogMember);

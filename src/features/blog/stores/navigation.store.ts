@@ -26,7 +26,6 @@ export const useNavigationStore = defineStore('blog_navigation', () => {
         readItems('navigations', {
           filter: { blog_id: { _eq: blogId } },
           sort: ['sort_order', 'label'],
-          _ts: Date.now(),
         }),
       );
       items.value = resp.map(mapNavigation);

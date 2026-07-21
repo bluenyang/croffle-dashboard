@@ -22,7 +22,6 @@ export const useCategoryStore = defineStore('blog_category', () => {
         readItems('categories', {
           filter: { blog_id: { _eq: blogId } },
           sort: ['sort_order', 'name'],
-          _ts: Date.now(),
         }),
       );
       categories.value = resp.map(mapCategory);

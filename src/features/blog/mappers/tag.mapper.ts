@@ -14,6 +14,5 @@ export function mapTagToPayload(req: TagSaveRequest): DirectusTagSavePayload {
   return {
     blog_id: req.blogId,
     name: req.name,
-    ...(req.slug !== undefined ? { slug: req.slug } : {}),
   };
 }

@@ -5,7 +5,15 @@ const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL;
 
 export const directus = createDirectus(DIRECTUS_URL)
   .with(authentication('session', { credentials: 'include', autoRefresh: true })) // session mode
-  .with(rest({ credentials: 'include' }));
+  .with(
+    rest({
+      credentials: 'include',
+      onRequest: (options) => ({
+        ...options,
+        cache: 'no-store',
+      }),
+    }),
+  );
 
 export async function getMe() {
   try {

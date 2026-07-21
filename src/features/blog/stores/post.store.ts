@@ -74,7 +74,6 @@ export const usePostStore = defineStore('blog_post', () => {
             fields: [...POST_LIST_FIELDS],
             limit: POST_LIST_PAGE_SIZE,
             page,
-            _ts: Date.now(),
           }),
         ),
         directus.request(
@@ -105,7 +104,6 @@ export const usePostStore = defineStore('blog_post', () => {
           filter: { blog_id: { _eq: blogId }, post_idx: { _eq: postIdx } },
           fields: [...POST_DETAIL_FIELDS],
           limit: 1,
-          _ts: Date.now(),
         }),
       );
       currentPost.value = resp[0] ? mapPost(resp[0]) : null;
