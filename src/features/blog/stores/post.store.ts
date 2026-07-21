@@ -20,7 +20,7 @@ import type {
   DirectusUploadFileResponse,
 } from '../types/directus.types';
 import type { FolderImagesPage, Post, PostListItem, PostSaveRequest } from '../types/post.types';
-import { FOLDER_IMAGES_PAGE_SIZE } from '../types/post.types';
+import { FOLDER_IMAGES_PAGE_SIZE, POST_LIST_PAGE_SIZE } from '../types/post.types';
 
 const POST_LIST_FIELDS = [
   'id',
@@ -45,6 +45,7 @@ const POST_DETAIL_FIELDS = [
 
 export const usePostStore = defineStore('blog_post', () => {
   const posts = ref<PostListItem[]>([]);
+  const postsTotal = ref(0);
   const currentPost = ref<Post | null>(null);
   const isLoading = ref(false);
   const isSaving = ref(false);
@@ -60,21 +61,35 @@ export const usePostStore = defineStore('blog_post', () => {
     }, 3000);
   }
 
-  async function fetchPosts(blogId: string) {
+  async function fetchPosts(blogId: string, page = 1) {
     isLoading.value = true;
     err.value = null;
     try {
-      const resp = await directus.request<DirectusPost[]>(
-        readItems('posts', {
-          filter: { blog_id: { _eq: blogId } },
-          sort: ['-post_idx', '-published_at', '-created_at'],
-          fields: [...POST_LIST_FIELDS],
-          _ts: Date.now(),
-        }),
-      );
+      const filter = { blog_id: { _eq: blogId } };
+      const [resp, countResp] = await Promise.all([
+        directus.request<DirectusPost[]>(
+          readItems('posts', {
+            filter,
+            sort: ['-post_idx', '-published_at', '-created_at'],
+            fields: [...POST_LIST_FIELDS],
+            limit: POST_LIST_PAGE_SIZE,
+            page,
+            _ts: Date.now(),
+          }),
+        ),
+        directus.request(
+          aggregate('posts', {
+            aggregate: { count: '*' },
+            query: { filter },
+          }),
+        ),
+      ]);
       posts.value = resp.map(mapPostListItem);
+      postsTotal.value = Number((countResp as Array<{ count: string | null }>)[0]?.count ?? 0);
     } catch {
       err.value = '글 목록을 불러오는데 실패했습니다.';
+      posts.value = [];
+      postsTotal.value = 0;
     } finally {
       isLoading.value = false;
     }
@@ -254,6 +269,7 @@ export const usePostStore = defineStore('blog_post', () => {
 
   return {
     posts,
+    postsTotal,
     currentPost,
     isLoading,
     isSaving,

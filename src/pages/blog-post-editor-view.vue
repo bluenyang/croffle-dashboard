@@ -8,7 +8,7 @@
   } from 'md-editor-v3';
   import 'md-editor-v3/lib/style.css';
   import { storeToRefs } from 'pinia';
-  import { computed, reactive, ref, watch } from 'vue';
+  import { computed, nextTick, ref, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
 
   import ThumbnailLibraryModal from '@/features/blog/components/thumbnail-library-modal.vue';
@@ -46,6 +46,15 @@
   });
   const isEditMode = computed(() => route.name === 'blog-post-edit');
 
+  const managePostsQuery = computed(() => {
+    const query: Record<string, string> = { section: 'posts' };
+    const returnPage = Number(route.query.returnPage);
+    if (Number.isFinite(returnPage) && returnPage > 1) {
+      query.page = String(returnPage);
+    }
+    return query;
+  });
+
   const blogStore = useBlogStore();
   const { getBlogBySlug } = blogStore;
   const currentBlog = computed(() => getBlogBySlug(blogSlug.value));
@@ -82,18 +91,6 @@
   const isCreatingTag = ref(false);
   const isCreatingSeries = ref(false);
 
-  const formState = reactive({
-    title,
-    content,
-    status,
-    visibility,
-    passwordHash,
-    selectedCategories,
-    selectedTags,
-    selectedSeriesId,
-    newSeriesName,
-  });
-
   const tagItems = computed(() => tags.value.map(toTagItem));
 
   const selectedTagItems = computed({
@@ -109,6 +106,17 @@
   });
 
   const tagMenuKey = ref(0);
+  const tagMenuRef = ref<{ inputRef?: HTMLElement | null } | null>(null);
+
+  function focusTagMenuInput() {
+    const root = tagMenuRef.value?.inputRef;
+    if (!root) return;
+    const input =
+      root instanceof HTMLInputElement
+        ? root
+        : (root.querySelector?.('input, textarea') as HTMLInputElement | null);
+    input?.focus();
+  }
 
   const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL as string;
 
@@ -160,7 +168,7 @@
         router.replace({
           name: 'blog-manage',
           params: { blogSlug: blogSlug.value },
-          query: { section: 'posts' },
+          query: managePostsQuery.value,
         });
         return;
       }
@@ -189,6 +197,7 @@
 
   // --- Thumbnail ---
   const showLibrary = ref(false);
+  const thumbnailNativeInput = ref<HTMLInputElement | null>(null);
 
   async function handleThumbnailChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -208,6 +217,14 @@
   function removeThumbnail() {
     thumbnailId.value = null;
     thumbnailPreview.value = null;
+  }
+
+  function clickThumbnailInput() {
+    thumbnailNativeInput.value?.click();
+  }
+
+  function handleOpenLibrary() {
+    showLibrary.value = true;
   }
 
   // --- Tags ---
@@ -246,8 +263,11 @@
 
   async function handleCreateTag(name: string) {
     await applyTagByName(name);
-    // create-item은 select를 preventDefault 해서 searchTerm이 안 비워짐 → remount로 초기화
+    // create-item은 searchTerm을 안 비움 → remount로 초기화 후 포커스 복구
     tagMenuKey.value += 1;
+    await nextTick();
+    await nextTick();
+    focusTagMenuInput();
   }
 
   // --- Series ---
@@ -396,16 +416,6 @@
     ]);
   }
 
-  function handleOpenLibrary() {
-    showLibrary.value = true;
-  }
-
-  const thumbnailFileRef = ref<{ inputRef?: HTMLInputElement | null } | null>(null);
-
-  function clickThumbnailInput() {
-    thumbnailFileRef.value?.inputRef?.click();
-  }
-
   const flatCategories = computed(() => flattenCategories(categoryStore.categoryTree));
 
   const mdEditorRef = ref<ExposeParam>();
@@ -422,13 +432,7 @@
 </script>
 
 <template>
-  <UForm
-    :state="formState"
-    class="relative flex h-[calc(100vh-64px)] flex-col"
-    :validate-on="[]"
-    :loading-auto="false"
-    @submit.prevent
-  >
+  <div class="flex h-[calc(100vh-64px)] flex-col">
     <!-- Top bar -->
     <div class="bg-default border-default border-b px-4 py-2">
       <div class="flex items-center gap-3">
@@ -437,21 +441,14 @@
           color="neutral"
           size="lg"
           icon="i-lucide-chevron-left"
-          :to="{ name: 'blog-manage', params: { blogSlug }, query: { section: 'posts' } }"
+          :to="{ name: 'blog-manage', params: { blogSlug }, query: managePostsQuery }"
         />
-        <UFormField name="title" class="min-w-0 flex-1" :ui="{ container: 'w-full' }">
-          <UInput
-            v-model="title"
-            type="text"
-            placeholder="제목을 입력하세요"
-            size="xl"
-            variant="ghost"
-            class="w-full"
-            :ui="{
-              base: 'text-2xl font-semibold px-0',
-            }"
-          />
-        </UFormField>
+        <input
+          v-model="title"
+          type="text"
+          placeholder="제목을 입력하세요"
+          class="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-2xl font-semibold outline-none"
+        />
         <div class="flex shrink-0 items-center gap-2">
           <UAlert
             v-if="postErr"
@@ -550,13 +547,8 @@
 
       <!-- Sidebar -->
       <aside class="border-default bg-default w-80 shrink-0 space-y-5 overflow-y-auto border-l p-4">
-        <UFormField
-          label="상태"
-          name="status"
-          orientation="horizontal"
-          class="text-base"
-          :ui="{ label: 'text-base font-medium tracking-wide opacity-60' }"
-        >
+        <div class="flex items-center gap-2">
+          <span class="text-base font-medium tracking-wide opacity-60">상태</span>
           <USelect
             v-model="status"
             :items="[
@@ -568,15 +560,11 @@
             label-key="label"
             size="md"
           />
-        </UFormField>
+        </div>
 
-        <UFormField
-          label="공개 범위"
-          name="visibility"
-          class="text-base"
-          :ui="{ label: 'text-base font-medium tracking-wide opacity-60' }"
-        >
-          <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-base font-medium tracking-wide opacity-60">공개 범위</span>
             <USelect
               v-model="visibility"
               :items="[
@@ -588,30 +576,25 @@
               label-key="label"
               size="md"
             />
-            <UInput
-              v-if="visibility === 'protected'"
-              v-model="passwordHash"
-              type="password"
-              placeholder="비밀번호 입력"
-              size="md"
-            />
           </div>
-        </UFormField>
-
-        <UFormField
-          label="썸네일"
-          name="thumbnail"
-          class="text-base"
-          :ui="{ label: 'text-base font-medium tracking-wide opacity-60' }"
-        >
           <UInput
-            ref="thumbnailFileRef"
+            v-if="visibility === 'protected'"
+            v-model="passwordHash"
+            type="password"
+            placeholder="비밀번호 입력"
+            size="md"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <span class="text-base font-medium tracking-wide opacity-60">썸네일</span>
+          <input
+            ref="thumbnailNativeInput"
             type="file"
             accept="image/*"
             class="sr-only"
             tabindex="-1"
             :disabled="isUploading"
-            :ui="{ base: 'sr-only' }"
             @change="handleThumbnailChange"
           />
           <div
@@ -658,55 +641,45 @@
             :selected-id="thumbnailId"
             @select="selectLibraryThumbnail"
           />
-        </UFormField>
+        </div>
 
-        <UFormField
-          label="카테고리"
-          name="categories"
-          class="text-base"
-          :ui="{ label: 'text-base font-medium tracking-wide opacity-60' }"
-        >
+        <div class="flex flex-col gap-2">
+          <span class="text-base font-medium tracking-wide opacity-60">카테고리</span>
           <div class="border-default max-h-48 space-y-1 overflow-y-auto rounded-md border p-2">
             <div
               v-for="cat in flatCategories"
               :key="cat.id"
-              class="hover:bg-accent/30 flex items-center gap-2 rounded px-1 py-0.5"
+              class="hover:bg-accent/30 flex cursor-pointer items-center gap-2 rounded px-1 py-0.5"
               :style="{ paddingLeft: `${cat.depth * 12 + 4}px` }"
+              @click="handleSelectCategory(cat.id)"
             >
               <UCheckbox
-                :id="`category-${cat.id}`"
                 :model-value="selectedCategories.includes(cat.id)"
                 size="md"
-                class="min-w-0 flex-1"
+                tabindex="-1"
+                @click.stop
                 @update:model-value="handleSelectCategory(cat.id)"
-              >
-                <template #label>
-                  <span class="flex min-w-0 items-center gap-2">
-                    <UIcon v-if="cat.icon" :name="cat.icon" class="size-4 shrink-0" />
-                    <span class="truncate text-sm">{{ cat.name }}</span>
-                  </span>
-                </template>
-              </UCheckbox>
+              />
+              <UIcon v-if="cat.icon" :name="cat.icon" class="size-4 shrink-0" />
+              <span class="truncate text-sm">{{ cat.name }}</span>
             </div>
             <p v-if="flatCategories.length === 0" class="text-muted py-2 text-center text-sm">
               카테고리 없음
             </p>
           </div>
-        </UFormField>
+        </div>
 
-        <UFormField
-          label="태그"
-          name="tags"
-          class="text-base"
-          :ui="{ label: 'text-base font-medium tracking-wide opacity-60' }"
-        >
+        <div class="flex flex-col gap-2">
+          <span class="text-base font-medium tracking-wide opacity-60">태그</span>
           <UInputMenu
             :key="tagMenuKey"
+            ref="tagMenuRef"
             v-model="selectedTagItems"
             :items="tagItems"
             multiple
             by="id"
             create-item
+            open-on-focus
             :filter-fields="['label', 'slug', 'name']"
             placeholder="태그 검색 또는 추가"
             size="md"
@@ -724,43 +697,37 @@
               {{ `"${item}" 추가` }}
             </template>
           </UInputMenu>
-        </UFormField>
+        </div>
 
-        <UFormField
-          label="시리즈"
-          name="series"
-          class="text-base"
-          :ui="{ label: 'text-base font-medium tracking-wide opacity-60' }"
-        >
-          <div class="space-y-2">
-            <USelect
-              v-model="selectedSeriesId"
-              :items="[{ id: null, name: '없음' }, ...seriesList]"
-              value-key="id"
-              label-key="name"
+        <div class="flex flex-col gap-2">
+          <span class="text-base font-medium tracking-wide opacity-60">시리즈</span>
+          <USelect
+            v-model="selectedSeriesId"
+            :items="[{ id: null, name: '없음' }, ...seriesList]"
+            value-key="id"
+            label-key="name"
+            size="md"
+            class="w-full"
+          />
+          <div class="flex gap-1">
+            <UInput
+              v-model="newSeriesName"
               size="md"
-              class="w-full"
+              placeholder="새 시리즈 이름"
+              class="flex-1"
+              @keydown.enter="createAndSelectSeries"
             />
-            <div class="flex gap-1">
-              <UInput
-                v-model="newSeriesName"
-                size="md"
-                placeholder="새 시리즈 이름"
-                class="flex-1"
-                @keydown.enter="createAndSelectSeries"
-              />
-              <UButton
-                size="md"
-                variant="outline"
-                color="neutral"
-                icon="i-lucide-plus"
-                :loading="isCreatingSeries"
-                @click="createAndSelectSeries"
-              />
-            </div>
+            <UButton
+              size="md"
+              variant="outline"
+              color="neutral"
+              icon="i-lucide-plus"
+              :loading="isCreatingSeries"
+              @click="createAndSelectSeries"
+            />
           </div>
-        </UFormField>
+        </div>
       </aside>
     </div>
-  </UForm>
+  </div>
 </template>

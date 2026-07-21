@@ -62,3 +62,4 @@ export interface FolderImagesPage {
 }
 
 export const FOLDER_IMAGES_PAGE_SIZE = 25;
+export const POST_LIST_PAGE_SIZE = 15;
